@@ -17,3 +17,6 @@ build/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Local market-data exports (deliverables, not library fixtures)
+exports/

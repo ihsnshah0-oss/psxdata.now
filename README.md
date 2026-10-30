@@ -83,6 +83,32 @@ scrips = psxdata.eligible_scrips()
 
 ---
 
+## Export a Watchlist
+
+Export quotes and daily OHLCV history for the 25-symbol example watchlist to CSV,
+JSON, per-symbol CSVs, and an Excel workbook:
+
+```bash
+pip install -e . openpyxl
+python tools/export_watchlist.py --start 2026-10-01 --end 2026-10-29 \
+  --output exports/psx-watchlist --no-cache
+```
+
+Edit `examples/watchlist.txt` or pass `--watchlist path/to/symbols.txt` to change
+the list. Without date arguments, the exporter requests the preceding 365 calendar
+days through today. The `exports/` directory is ignored by Git.
+
+The workbook contains **Snapshot**, **Daily history**, **Coverage**, and **Read me**
+sheets. The exporter preserves temporary `XD` quote symbols, reports missing values
+as blank, records retrieval timestamps, and records per-symbol failures rather than
+inventing observations. It requires direct network access to PSX. `openpyxl` is only
+needed for the Excel workbook.
+
+Market-data snapshots are not a streaming feed. Review PSX's licensing terms before
+redistributing data or using it commercially.
+
+---
+
 ## Using a Proxy
 
 Route every request psxdata makes to PSX, including the `X-Req-Id` token fetch, through a proxy of your choice:
