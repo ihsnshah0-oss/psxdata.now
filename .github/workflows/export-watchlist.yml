@@ -1,0 +1,39 @@
+name: Export PSX watchlist
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: First price date (YYYY-MM-DD)
+        required: true
+        default: '2021-10-30'
+      end:
+        description: Last price date (YYYY-MM-DD)
+        required: true
+        default: '2026-10-29'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -e . openpyxl
+      - name: Export prices
+        run: |
+          python tools/export_watchlist.py --start '${{ inputs.start }}' --end '${{ inputs.end }}' --output exports/psx-five-years --no-cache
+      - name: Upload export
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: psx-watchlist-export
+          path: exports/
+          if-no-files-found: warn
+          retention-days: 7
