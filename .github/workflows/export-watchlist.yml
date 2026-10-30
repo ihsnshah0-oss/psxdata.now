@@ -29,36 +29,6 @@ jobs:
       - name: Export prices
         run: |
           python tools/export_watchlist.py --start '${{ inputs.start }}' --end '${{ inputs.end }}' --output exports/psx-five-years --no-cache
-      - name: Capture company-page schema (temporary research)
-        if: always()
-        run: |
-          python - <<'PY'
-          import json, re
-          from pathlib import Path
-          from bs4 import BeautifulSoup
-          from psxdata.scrapers.base import BaseScraper
-          out = Path('exports/schema')
-          out.mkdir(parents=True, exist_ok=True)
-          scraper = BaseScraper()
-          for name, path in [('FFC','/company/FFC'), ('payouts','/payouts')]:
-              try:
-                  response = scraper._request('GET', 'https://dps.psx.com.pk' + path)
-                  html = re.sub(r'window\.__ps\s*=\s*\{.*?\}\s*;', 'window.__ps = {};', response.text, flags=re.S)
-                  (out / (name + '.html')).write_text(html)
-                  soup = BeautifulSoup(html, 'lxml')
-                  summary = []
-                  for table in soup.find_all('table'):
-                      parent = table.parent
-                      summary.append({'id':table.get('id'), 'class':table.get('class'),
-                                      'parent':str(parent)[:350], 'headers':[x.get_text(' ',strip=True) for x in table.find_all('th')],
-                                      'first_rows':[str(x) for x in table.select('tr')[:3]]})
-                  (out / (name + '_tables.json')).write_text(json.dumps(summary,indent=2))
-                  scripts = [{'src':s.get('src'), 'text':s.get_text()} for s in soup.find_all('script')]
-                  (out / (name + '_scripts.json')).write_text(json.dumps(scripts,indent=2))
-                  print(name, response.status_code, len(response.content), len(summary))
-              except Exception as exc:
-                  print(name, type(exc).__name__, str(exc))
-          PY
       - name: Upload export
         if: always()
         uses: actions/upload-artifact@v4
